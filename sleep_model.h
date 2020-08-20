@@ -1,14 +1,13 @@
-#ifdef GLOBAL_SLEEP_ALGO_OPEN
-#include <stdlib.h>
-#include <string.h>
 #include <math.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #if defined(__clang__) || defined(__GNUC__)
-#define LIKELY(x)   __builtin_expect(!!(x), 1)
+#define LIKELY(x) __builtin_expect(!!(x), 1)
 #define UNLIKELY(x) __builtin_expect(!!(x), 0)
 #else
-#define LIKELY(x)   (x)
+#define LIKELY(x) (x)
 #define UNLIKELY(x) (x)
 #endif
 
@@ -31,4 +30,3 @@ extern const unsigned char is_categorical[];
 size_t get_num_output_group(void);
 size_t get_num_feature(void);
 float predict_sleep_status(union Entry* data, int pred_margin);
-#endif

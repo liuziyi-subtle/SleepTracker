@@ -1,6 +1,6 @@
 # GCC version: gcc 4.4.7
 ROOTDIR = $(CURDIR)
-CC = gcc -g
+CC = clang -g # gcc clang 
 CXX = g++ -g
 CFLAGS = -O3 -Wall -Wextra -Wl,-rpath=$(ROOTDIR) -std=c99
 #LIB_DIR = -L$(ROOTDIR)
