@@ -26,7 +26,7 @@ typedef struct {
     int16_t *y;
     int16_t *z;
   } acc_t;
-  uint8_t nonwear; /*<< 0 not wear, 1 wear */
+  uint8_t nonwear; /*<< 1-nonwear & 0-wear */
 } sleep_tracker_input_t;
 
 /* output */
