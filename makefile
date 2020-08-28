@@ -1,29 +1,41 @@
-# GCC version: gcc 4.4.7
-ROOTDIR = $(CURDIR)
-CC = clang -g # gcc clang 
-CXX = g++ -g
-CFLAGS = -O3 -Wall -Wextra -Wl,-rpath=$(ROOTDIR) -std=c99
-#LIB_DIR = -L$(ROOTDIR)
-#LIB_DEP = -lModel
-#XGBOOST_INCLUDE_DIR = -I$(ROOTDIR)/xgboost/include -I$(ROOTDIR)/xgboost/rabit/include
-ETOBJS = main.o ls_sleep_tracker.o ls_sleep_predict.o ls_sleep_func.o
+# usage: make compiler=clang debug=1
 
-all:	main
+CC = $(compiler) -g
+CFLAGS = -Wall -Wextra
 
-main:	$(ETOBJS)
-	$(CC) -o main $(ETOBJS) -Wall -lm -DGLOBAL_SLEEP_ALGO_OPEN=1 -DDEBUG_LOCAL=1
+DFLAGS = -DALGO_DEBUG=$(debug)
 
-main.o: main.c ls_sleep_tracker.h
-	$(CC) -c main.c -DGLOBAL_SLEEP_ALGO_OPEN=1 -DDEBUG_LOCAL=1
+DIR_DEBUG = debug
 
-ls_sleep_tracker.o:	ls_sleep_tracker.c ls_sleep_tracker.h
-	$(CC) -c ls_sleep_tracker.c -DGLOBAL_SLEEP_ALGO_OPEN=1 -DDEBUG_LOCAL=1
+DIR_RESULTS = results
 
-ls_sleep_predict.o:	ls_sleep_predict.c ls_sleep_predict.h
-	$(CC) -c ls_sleep_predict.c -DGLOBAL_SLEEP_ALGO_OPEN=1 -DDEBUG_LOCAL=1
+ETOBJS = main.o sleep_tracker.o sleep_depth.o sleep_utils.o sleep_model.o debug.o
 
-ls_sleep_func.o: ls_sleep_func.c ls_sleep_func.h
-	$(CC) -c -Wall ls_sleep_func.c -DGLOBAL_SLEEP_ALGO_OPEN=1 -DDEBUG_LOCAL=1
+all:	$(DIR_RESULTS) executable
+
+$(DIR_RESULTS):
+	mkdir $@
+
+executable: $(ETOBJS)
+	$(CC) $(CFLAGS) -o $@ $(ETOBJS) -lm
+
+main.o:
+	$(CC) $(CFLAGS) -c $(DIR_DEBUG)/main.c -o $@ -I$(DIR_DEBUG) $(DFLAGS)
+
+sleep_tracker.o:
+	$(CC) $(CFLAGS) -c sleep_tracker.c $(DFLAGS)
+
+sleep_depth.o:
+	$(CC) $(CFLAGS) -c sleep_depth.c $(DFLAGS)
+
+sleep_utils.o:
+	$(CC) $(CFLAGS) -c sleep_utils.c $(DFLAGS)
+
+sleep_model.o:
+	$(CC) $(CFLAGS) -c sleep_model.c $(DFLAGS)
+
+debug.o:
+	$(CC) $(CFLAGS) -c $(DIR_DEBUG)/debug.c -o $@ -I$(DIR_DEBUG) $(DFLAGS)
 
 clean:
-	rm -f *.o *.out *~ main
+	rm -rf *.o *.out *~ executable $(DIR_RESULTS)

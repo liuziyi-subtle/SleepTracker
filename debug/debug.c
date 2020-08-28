@@ -1,7 +1,5 @@
 #include "debug.h"
 
-INTERMEDIATES_t PLOT = {0};
-
 static int32_t k_channel0[MAX_LENGTH];
 static int32_t k_channel1[MAX_LENGTH];
 static int32_t k_channel2[MAX_LENGTH];
@@ -100,9 +98,26 @@ rawdata_t *ReadMTKData(const char *path, uint8_t target_value_category_id) {
   return;
 }
 
+/* transfer to sleep format. */
+uint32_t Convert2SleepData(int32_t *data_i16, uint32_t data_i16_length,
+                           uint8_t *data_u8) {
+  uint32_t data_u8_length = 0;
+  /* convert and downsample. */
+  for (uint32_t i = 0; i < data_i16_length; i = i + 25) {
+    int32_t temp = ((int16_t)data_i16[i] << 2) >> 8; /*<< 2g 8bit */
+    if (temp > 127) {
+      temp = 127;
+    } else if (temp < -128) {
+      temp = -128;
+    }
+
+    data_u8[data_u8_length++] = (uint8_t)(127 - temp);
+  }
+}
+
 /* TODO: 此函数目前只支持int32_t和float类型的写入. */
-void WriteToFile(const char *path, void *data, uint32_t data_length,
-                 uint8_t d_type) {
+void Write2File(const char *path, void *data, uint32_t data_length,
+                uint8_t d_type) {
   FILE *fp = fopen(path, "w");
 
   if (d_type == 0) {

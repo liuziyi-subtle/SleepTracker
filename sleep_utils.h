@@ -4,6 +4,10 @@
 
 #include <stdint.h>
 
+#if ALGO_DEBUG
+#include "debug/debug.h"
+#endif
+
 #define SLEEP_STD_DURATION (3) /*<< 3min */
 #define SLEEP_COMP_ACC_LENGTH (3 * (SLEEP_STD_DURATION + 1))
 #define SLEEP_RES_ACC_LENGTH (2 * SLEEP_STD_DURATION + 1)
