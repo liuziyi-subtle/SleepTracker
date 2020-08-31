@@ -5,11 +5,14 @@ static int32_t k_channel1[MAX_LENGTH];
 static int32_t k_channel2[MAX_LENGTH];
 static rawdata_t k_raw;
 
+ALGO_DEBUG_DATA_t PLOT = {0};
+
 /* Init*/
 void DebugInit() {
   PLOT.probs_length = 0;
   PLOT.preds_length = 0;
   PLOT.results_length = 0;
+  PLOT.depths_length = 0;
 }
 
 /* 获取所有满足target_format格式的文件路径. */
@@ -95,7 +98,7 @@ rawdata_t *ReadMTKData(const char *path, uint8_t target_value_category_id) {
 
   fclose(fp_in);
 
-  return;
+  return &k_raw;
 }
 
 /* transfer to sleep format. */

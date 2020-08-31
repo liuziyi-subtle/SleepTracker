@@ -15,6 +15,9 @@ typedef struct {
   float preds[MAX_LENGTH];
   uint32_t preds_length;
 
+  float depths[MAX_LENGTH];
+  uint32_t depths_length;
+
   uint8_t results[MAX_LENGTH];
   uint32_t results_length;
 } ALGO_DEBUG_DATA_t;
@@ -27,9 +30,7 @@ typedef struct {
   int32_t* channel2;
 } rawdata_t;
 
-// typedef enum { u8, u16, u32, i8, i16, i32, f32, f64 } data_type_t;
-
-ALGO_DEBUG_DATA_t PLOT;
+extern ALGO_DEBUG_DATA_t PLOT;
 
 void DebugInit();
 

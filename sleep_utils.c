@@ -52,7 +52,8 @@ int32_t BaseCmpFunc(const void *a, const void *b) {
 }
 
 uint8_t BaseSearchMostFrequentElement(const uint8_t *srcArr, uint8_t arrLen) {
-  uint8_t *arr = (uint8_t *)dmalloc(sizeof(uint8_t) * arrLen);
+  /* TODO: 改为全局数组. */
+  uint8_t *arr = (uint8_t *)malloc(sizeof(uint8_t) * arrLen);
   memcpy(arr, srcArr, sizeof(uint8_t) * arrLen);
   qsort(arr, arrLen, sizeof(uint8_t), BaseCmpFunc);
 

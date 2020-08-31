@@ -18,11 +18,11 @@ extern uint8_t BaseSearchMostFrequentElement(const uint8_t *srcArr,
 static void _GetActivity(float32_t depth_feats[],
                          const uint16_t depth_feats_length,
                          uint8_t activities[]) {
-  OnePassStd(0, 1);
+  BaseOnePassStd(0, 1);
 
   uint16_t i;
   for (i = 0; i < depth_feats_length; ++i) {
-    float32_t dynamic_std = OnePassStd(depth_feats[i], 0);
+    float32_t dynamic_std = BaseOnePassStd(depth_feats[i], 0);
     uint8_t activity = depth_feats[i] > 0.1f * dynamic_std ? 1 : 0;
   }
 }
@@ -45,16 +45,13 @@ static void _Get3StageDepth(const uint8_t counts[],
                             const uint16_t counts_length,
                             const sleep_marker_t markers[],
                             const uint16_t markers_length, uint8_t depths[]) {
-  uint8_t lower_quantile = _GetPercentile(counts, counts_length, 20);
-  uint8_t higher_quantile = _GetPercentile(counts, counts_length, 80);
-
   /* 为节省空间让depths暂时先存储排序后的counts. */
   for (uint16_t i = 0; i < counts_length; ++i) {
     depths[i] = counts[i];
   }
   qsort(depths, (size_t)counts_length, sizeof(uint8_t), BaseCmpFunc);
-  uint8_t lower_quantile = _Quantile(depths, (uint32_t)counts_length, 0.2);
-  uint8_t higher_quantile = _Quantile(depths, (uint32_t)counts_length, 0.8);
+  uint8_t lower_quantile = BaseQuantile(depths, (uint32_t)counts_length, 0.2);
+  uint8_t higher_quantile = BaseQuantile(depths, (uint32_t)counts_length, 0.8);
 
   for (uint16_t i = 0; i < counts_length; ++i) {
     if (counts[i] <= lower_quantile) {

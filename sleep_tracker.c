@@ -16,8 +16,9 @@ static uint32_t k_utc = 0;
 static float32_t k_depth_feats[SLEEP_MAX_RECORD_LENGTH] = {.0f};
 static uint16_t k_depth_feats_length = 0;
 
-static sleep_marker_t k_markers[SLEEP_MAX_SLEEP_MARKER_LENGTH] = {0};
-static sleep_marker_t k_temp_markers[SLEEP_MAX_SLEEP_MARKER_LENGTH] = {0};
+static sleep_marker_t k_markers[SLEEP_MAX_SLEEP_MARKER_LENGTH] = {{0, 0, 0}};
+static sleep_marker_t k_temp_markers[SLEEP_MAX_SLEEP_MARKER_LENGTH] = {
+    {0, 0, 0}};
 static uint16_t k_markers_length = 0;
 
 static uint16_t k_cycle_detector = 0;
@@ -51,7 +52,7 @@ static uint8_t _Predict(const float32_t features[]) {
 static uint16_t _RemoveNoiseMarkers(sleep_marker_t markers[],
                                     uint16_t markers_length) {
   if (markers_length < 2) {
-    return;
+    return 0;
   }
 
   uint16_t new_markers_length = markers_length;
@@ -263,7 +264,7 @@ void SleepInit() {
   k_total_duration = 0;
 
   _DetectSleep(0, 0, 0, 0, 1);
-  _AnalyzeDepth();
+  // _AnalyzeDepth();
 }
 
 void SleepInput(sleep_tracker_input_t* input) {
@@ -297,7 +298,7 @@ sleep_tracker_output_t* SleepOutput() {
   }
 
   /* 计算时长并去除与后段大于10/30/60分钟，自身之和小于10/30/60分钟的marker对 */
-  uint16_t markers_length = _RemoveNoiseMarker(markers, markers_length);
+  markers_length = _RemoveNoiseMarkers(markers, markers_length);
 
   /* total sleep duration. */
   sleep_marker_t* p = markers;
@@ -391,5 +392,5 @@ sleep_tracker_output_t* SleepOutput() {
     SleepInit();
   }
 
-  return;
+  return &k_output;
 }
