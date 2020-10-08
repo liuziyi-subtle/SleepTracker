@@ -2,6 +2,8 @@
  * Copyright(c) Liu Ziyi. Licensed under the MIT license.
  */
 
+#include "sleep_depth.h"
+
 #include <stdlib.h>
 
 #include "sleep_tracker.h"
@@ -10,9 +12,9 @@
 static uint8_t k_mem_pool[2 * SLEEP_MAX_RECORD_LENGTH];
 
 /* extern functions. */
-extern int32_t BaseCmpFunc(const void *a, const void *b);
-extern uint8_t BaseSearchMostFrequentElement(const uint8_t *srcArr,
-                                             uint8_t arrLen);
+// extern int32_t BaseCmpFunc(const void *a, const void *b);
+// extern uint8_t BaseSearchMostFrequentElement(const uint8_t *srcArr,
+//                                              uint8_t arrLen);
 
 /* compute activities. */
 static void _GetActivity(float32_t depth_feats[],

@@ -4,8 +4,6 @@
 
 #include "sleep_utils.h"
 
-#include "sleep_tracker.h"
-
 /* To left if shift > 0 else right. */
 void BaseRoll(sleep_marker_t *data, int16_t data_length, int16_t shift) {
   /* first roll within [0, shift - 1] and [shift, data_length - 1],

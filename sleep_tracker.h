@@ -5,9 +5,9 @@
 #include <stdint.h>
 
 typedef enum {
-  T_NONE = 0, /*<< no sleep */
-  T_TEMP = 1, /*<< temporal sleep */
-  T_COMP = 2, /*<< complete sleep */
+  T_NONE, /*<< no sleep */
+  T_TEMP, /*<< temporal sleep */
+  T_COMP, /*<< complete sleep */
 } sleep_terminator_t;
 
 /* description of a sleep segment. */

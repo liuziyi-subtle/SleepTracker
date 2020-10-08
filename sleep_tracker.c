@@ -7,8 +7,14 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "sleep_depth.h"
 #include "sleep_model.h"
 #include "sleep_utils.h"
+
+extern uint16_t ComputeSleepDepth(const float32_t depth_feats[],
+                                  const uint16_t depth_feats_length,
+                                  sleep_marker_t markers[],
+                                  const uint16_t markers_length);
 
 static uint32_t k_time = 0;
 static uint32_t k_utc = 0;
