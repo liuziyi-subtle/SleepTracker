@@ -1,4 +1,3 @@
-#ifdef GLOBAL_SLEEP_ALGO_OPEN
 /**
  * Copyright [2019] <Ziyi Liu>.
  */
@@ -54,7 +53,7 @@
 
 // Input struct. (暂定这个结构体，等测试功能稳定再修改)
 struct LSSleepData {
-  // uint8_t hr;  // 1秒钟1个，1hz
+  uint8_t hr;            // 1秒钟1个，1hz
   uint8_t accX;          // 1秒钟1个，1hz
   uint8_t accY;          // 1秒钟1个，1hz
   uint8_t accZ;          // 1秒钟1个，1hz
@@ -67,7 +66,7 @@ struct LSSleepInput {
   // Utc.
   uint32_t utcTime;
   // Heart rate.
-  // uint8_t hr;
+  uint8_t hr;
   // Acceleration X.
   uint8_t accX;
   // Acceleration Y.
@@ -119,9 +118,10 @@ struct LSSleepResult {
   // Length of sleep segments in a sleep cycle.
   uint16_t numSleepSegments;
 
+  #ifdef FUNC_SLEEP_CHECK_WEAR_TEST
   uint8_t *wearBuf;
   uint16_t wearBufLen;
-
+  #endif
   Terminator_t completeCycleIndicator;
 };
 
@@ -133,4 +133,4 @@ void LSSleepAnalyzeData(struct LSSleepData *data, uint8_t dataSize,
 void LSSleepPutData(struct LSSleepInput *info, bool wearIndicator, bool init);
 void LSSleepGetResult(struct LSSleepResult *result);
 #endif
-#endif
+

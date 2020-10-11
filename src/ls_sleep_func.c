@@ -1,4 +1,3 @@
-#ifdef GLOBAL_SLEEP_ALGO_OPEN
 /**
 * Copyright [2019] <Ziyi Liu>.
 */
@@ -24,7 +23,7 @@
 #else
 #include "rtos.h"
 #include "FreeRTOS.h"
-#include "ls_log.h"
+//#include "ls_log.h"
 #define data_malloc pvPortMalloc
 #define data_free   vPortFree
 #endif  // DEBUG_LOCAL
@@ -108,11 +107,13 @@ int PredictSleepStatus(const float* features) {
 
     data_free(data);
 
-    if (outProbability >= 0.5f) {
-        return 1;
-    } else {
-        return 0;
-    }
+    return outProbability;
+
+    // if (outProbability >= 0.5f) {
+    //     return 1;
+    // } else {
+    //     return 0;
+    // }
 }
 
 
@@ -674,4 +675,4 @@ void LSSleepFuncInitialize(void) {
 
     return;
 }
-#endif
+

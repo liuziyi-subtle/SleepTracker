@@ -1,4 +1,4 @@
-#ifdef GLOBAL_SLEEP_ALGO_OPEN
+
 static const double threshold[] = {
   0.37824898958206177, 0.37828025221824646, 0.57707870006561279, 
   0.5943458080291748, 0.72520214319229126, 0.72614741325378418, 
@@ -716,4 +716,4 @@ float predict_sleep_status(union Entry* data, int pred_margin) {
     return sum;
   }
 }
-#endif
+

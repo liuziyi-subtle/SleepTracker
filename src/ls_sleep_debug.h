@@ -1,4 +1,3 @@
-#ifdef GLOBAL_SLEEP_ALGO_OPEN
 /**
 * Copyright [2019] <Ziyi Liu>.
 */
@@ -63,4 +62,3 @@ extern PLOT_STRUC PLOT;
 
 #endif  // DEBUG_LOCAL
 
-#endif

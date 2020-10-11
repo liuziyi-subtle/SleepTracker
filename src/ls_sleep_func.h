@@ -1,4 +1,3 @@
-#ifdef GLOBAL_SLEEP_ALGO_OPEN
 /**
 * Copyright [2019] <Ziyi Liu>.
 */
@@ -68,4 +67,5 @@ bool CheckWearingStepTwo(uint8_t *x, uint8_t *y, uint8_t *z, uint16_t len);
 bool SecondRoundCheckWear(void);
 
 void LSSleepFuncInitialize(void);
-#endif
+
+

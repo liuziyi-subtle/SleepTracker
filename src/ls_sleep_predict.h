@@ -1,4 +1,3 @@
-#ifdef GLOBAL_SLEEP_ALGO_OPEN
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -31,4 +30,4 @@ extern const unsigned char is_categorical[];
 size_t get_num_output_group(void);
 size_t get_num_feature(void);
 float predict_sleep_status(union Entry* data, int pred_margin);
-#endif
+

@@ -1,4 +1,3 @@
-#ifdef GLOBAL_SLEEP_ALGO_OPEN
 //
 // Created by Ziyi Liu on 2019-04-15.
 //
@@ -25,7 +24,7 @@
 #define data_free free
 #else  // 手表运行
 #include "FreeRTOS.h"
-#include "ls_log.h"
+//#include "ls_log.h"
 #include "rtos.h"
 #define data_malloc pvPortMalloc
 #define data_free vPortFree
@@ -44,8 +43,10 @@ static uint32_t gTime;
 static uint32_t gUtcTime;
 static float gSleepDepthFeatBuf[MAX_SLEEP_RECORD_LEN];
 static uint16_t gSleepDepthFeatBufLen;
+#ifdef FUNC_SLEEP_CHECK_WEAR_TEST
 static uint8_t kWearBuf[MAX_SLEEP_RECORD_LEN];
 static uint16_t kWearBufLen;
+#endif
 static uint16_t gSleepMarkerBuf[MAX_SLEEP_MARKER_LEN];
 static uint16_t gSleepMarkerBufLen;
 static uint16_t gSleepCycleDetector;
@@ -82,11 +83,12 @@ void LSSleepInitialize(void) {
     gSleepDepthFeatBuf[i] = 0;
   }
   gSleepDepthFeatBufLen = 0;
-
+  #ifdef FUNC_SLEEP_CHECK_WEAR_TEST
   for (i = 0; i < MAX_SLEEP_RECORD_LEN; ++i) {
     kWearBuf[i] = 1;
   }
   kWearBufLen = 0;
+  #endif
 
   gSleepCycleDetector = 0;
   gSleepCycleDetectorCompens = 0;
@@ -123,6 +125,11 @@ void LSSleepInitialize(void) {
 void LSSleepAnalyzeData(struct LSSleepData *data, uint8_t dataSize,
                         uint32_t utcTime, bool init) {
   if (init) {
+    return;
+  }
+
+  if(data==NULL)
+  {
     return;
   }
   /* TODO(LIZIYI): Move UTC time calibration to LSSleepGetResult. */
@@ -199,7 +206,7 @@ void LSSleepAnalyzeData(struct LSSleepData *data, uint8_t dataSize,
   // 封装LSSleepPutData数据输入接口.
   struct LSSleepInput *info =
       (struct LSSleepInput *)data_malloc(sizeof(struct LSSleepInput));
-  // info->hr = data[0].hr，R项目不传心率
+  info->hr = data[0].hr;
   info->accX = data[0].accX;
   info->accY = data[0].accY;
   info->accZ = data[0].accZ;
@@ -234,8 +241,8 @@ void LSSleepPutData(struct LSSleepInput *info, bool wearIndicator, bool init) {
   // static bool lastSleepStatus;
 
   // Heart rate buffer
-  //   static uint8_t hrBuf[RES_ACC_BUF_LEN];
-  //   static uint8_t hPtr;
+  static uint8_t hrBuf[RES_ACC_BUF_LEN];
+  static uint8_t hPtr;
 
   // Window for post-processing on model result.
   static uint8_t averageWindow[SLEEP_STATUS_AVG_WINDOW_LEN];
@@ -244,7 +251,18 @@ void LSSleepPutData(struct LSSleepInput *info, bool wearIndicator, bool init) {
   static bool wearIndicatorBuf[WEAR_INDICATOR_BUF_LEN];
   static uint8_t wPtr;
 
+  static uint16_t count_stdPos;
+  static double sum_stdPos;
+  static double mean_stdPos;
+  static uint16_t count_sleep;
+  static uint16_t count_awake;
+
   uint16_t i = 0;
+
+  if(info ==NULL)
+  {
+    return;
+  }
 
   // Algorithm initialization
   if (init) {
@@ -260,10 +278,10 @@ void LSSleepPutData(struct LSSleepInput *info, bool wearIndicator, bool init) {
     }
     rPtr = 0;
 
-    // for (i = 0; i < RES_ACC_BUF_LEN; ++i) {
-    //   hrBuf[i] = 0;
-    // }
-    // hPtr = 0;
+    for (i = 0; i < RES_ACC_BUF_LEN; ++i) {
+      hrBuf[i] = 0;
+    }
+    hPtr = 0;
 
     // Set initially the sleep status as wake.
     // lastSleepStatus = false;
@@ -280,14 +298,20 @@ void LSSleepPutData(struct LSSleepInput *info, bool wearIndicator, bool init) {
     }
     wPtr = 0;
 
+    count_stdPos = 0;
+    sum_stdPos = .0;
+    mean_stdPos = .0;
+    count_sleep = 0;
+    count_awake = 0;
+
     return;
   }
 
   // Update heart rate buffer.
-  //   hrBuf[hPtr++] = info->hr;
-  //   if (hPtr == RES_ACC_BUF_LEN) {
-  //     hPtr = 0;
-  //   }
+  hrBuf[hPtr++] = info->hr;
+  if (hPtr == RES_ACC_BUF_LEN) {
+    hPtr = 0;
+  }
 
   // Update resultant acc buffer.
   float resAcc = pow(info->accX, 2) + pow(info->accY, 2) + pow(info->accZ, 2);
@@ -309,7 +333,9 @@ void LSSleepPutData(struct LSSleepInput *info, bool wearIndicator, bool init) {
   if (wPtr == WEAR_INDICATOR_BUF_LEN) {
     wPtr = 0;
   }
+  #ifdef FUNC_SLEEP_CHECK_WEAR_TEST
   kWearBuf[kWearBufLen++] = wearIndicator;
+  #endif
 
   // If global time counter does not exceed 7 minutes, update sleep depth
   // feature buffer with 0 and return. Note: if LSSleepGetResult is called,
@@ -351,21 +377,51 @@ void LSSleepPutData(struct LSSleepInput *info, bool wearIndicator, bool init) {
   feats[4] = compAccBuf[cPtr + 2];
 
   // Get result from model.
-  int pred = PredictSleepStatus(feats);
+  float prob = PredictSleepStatus(feats);
+  if (prob >= 0.5) {
+    count_stdPos++;
+    sum_stdPos += stdPos;
+    mean_stdPos /= count_stdPos;
+    count_sleep++;
+    /* 克服清醒初期10分钟内出现的睡眠. */
+    if (count_sleep > 3) {
+      count_awake = 0;
+    }
+  } else {
+    count_awake++;
+    count_sleep = 0;
+    if ((gTotalSleepDuration > 90) && (gTotalSleepDuration < 360)) {
+      float awake2sleep = stdPos / (float)mean_stdPos;
+      if (awake2sleep < 2) {
+        if (count_awake < 10) {
+          if (prob > 0.3) {
+            prob = 0.51;
+          }
+        }
+      }
+    }
+  }
+
+  int pred;
+  if (prob >= 0.5) {
+    pred = 1;
+  } else {
+    pred = 0;
+  }
 
   // 根据wear indicator修正pred，区分睡眠/静置.
   if (!(wearIndicatorBuf[wPtr])) {
     pred = 0;
   }
 
-  // 如果当前hrBuf中心率在7分钟内的变化量为0，则认为是佩戴检测失效所致.
-  //   int hrDiffSum = 0;
-  //   for (i = 1; i < RES_ACC_BUF_LEN; i++) {
-  //     hrDiffSum += hrBuf[i] - hrBuf[i - 1];
-  //   }
-  //   if ((hrDiffSum == 0) && (gTotalSleepDuration < 10)) {
-  //     pred = 0;
-  //   }
+  // 如果当前hrBuf中心率在7分钟内的变化量为0，则认为是佩戴检测失效所致.  //yuS
+//  int hrDiffSum = 0;
+//  for (i = 1; i < RES_ACC_BUF_LEN; i++) {
+//    hrDiffSum += hrBuf[i] - hrBuf[i - 1];
+//  }
+//  if ((hrDiffSum == 0) && (gTotalSleepDuration < 10)) {
+//    pred = 0;
+//  }
 
   // Update average window.
   averageWindow[aPtr++] = pred;
@@ -441,6 +497,7 @@ void LSSleepGetResult(struct LSSleepResult *result) {
   }
 
   // TODO(Ziyi Liu): 第二轮佩戴检测,完善CheckWear函数。
+  /*
   bool secondRoundWearIndicator;
   if (gWearIndicator && gSleepMarkerBufLen > 0) {
     uint16_t markerOn = gSleepMarkerBuf[gSleepMarkerBufLen - 2];
@@ -451,6 +508,7 @@ void LSSleepGetResult(struct LSSleepResult *result) {
       addMarkerIndicator = false;
     }
   }
+      */
 
   // 越界检查：gSleepMarkerBuf中每一个点必须大于前面的点且gSleepMarkerBuf记录的
   // 长度小于MAX_SLEEP_RECORD_LEN。
@@ -648,8 +706,10 @@ void LSSleepGetResult(struct LSSleepResult *result) {
   //    printf("result->deepDuration: %u\n",  result->deepDuration);
   //    printf("result->remDuration: %u\n",   result->remDuration);
   //    printf("gCounter: %u\n", gCounter);
+  #ifdef FUNC_SLEEP_CHECK_WEAR_TEST
   result->wearBuf = &kWearBuf[sleepCycleOn];
   result->wearBufLen = sleepCycleLen;
+  #endif
 
   if (addMarkerIndicator && gSleepMarkerBufLen > 0) {
     gSleepMarkerBufLen -= 1;
@@ -672,5 +732,3 @@ void LSSleepGetResult(struct LSSleepResult *result) {
 
   return;
 }
-
-#endif
