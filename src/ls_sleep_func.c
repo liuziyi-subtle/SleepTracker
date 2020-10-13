@@ -92,7 +92,7 @@ bool WindowAverage(uint8_t *window, uint32_t windowLen) {
 /**
 * 检测睡眠结果
 */
-int PredictSleepStatus(const float* features) {
+float PredictSleepStatus(const float* features) {
     const size_t num_feature = get_num_feature();
     union Entry* data = data_malloc(sizeof(union Entry) * num_feature);
     float outProbability;

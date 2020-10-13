@@ -390,7 +390,7 @@ void LSSleepPutData(struct LSSleepInput *info, bool wearIndicator, bool init) {
   } else {
     count_awake++;
     count_sleep = 0;
-    if ((gTotalSleepDuration > 90) && (gTotalSleepDuration < 360)) {
+    if ((gTotalSleepDuration > 90) && (gTotalSleepDuration < 300)) {
       float awake2sleep = stdPos / (float)mean_stdPos;
       if (awake2sleep < 2) {
         if (count_awake < 10) {

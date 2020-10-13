@@ -20,7 +20,7 @@ float OnePassStd(const float x, bool init);
 
 bool WindowAverage(uint8_t *window, uint32_t windowLen);
 
-int PredictSleepStatus(const float* features);
+float PredictSleepStatus(const float* features);
 
 float FindMedian(uint8_t *nums, uint16_t numsSize);
 
