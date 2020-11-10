@@ -661,7 +661,8 @@ void LSSleepGetResult(struct LSSleepResult *result) {
     depth = (uint8_t)sleepCycleDepth[3 * i + 1];
     duration = end - start + 1;
 
-    uint32_t corrrctedUtcTime = gUtcTime - 10 * 60;
+    // uint32_t corrrctedUtcTime = gUtcTime - 10 * 60;
+    uint32_t corrrctedUtcTime = gUtcTime;
 
     // result->sleepSegments[i].startTimeUtc = gUtcTime + 60 * (start +
     // sleepCycleOn); result->sleepSegments[i].endTimeUtc = gUtcTime + 60 * (end
