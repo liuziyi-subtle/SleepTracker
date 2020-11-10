@@ -558,6 +558,15 @@ void LSSleepGetResult(struct LSSleepResult *result) {
       LSSleepInitialize();
     }
 
+    /*<< 1h内睡眠血氧开关. */
+    result->SpO2On = 0u;
+    if (totalSleepDuration > MIN_SPO2_DURATION) {
+      /*<< 此时已经恢复了gSleepMarkerBufLen真实长度. */
+      if (gSleepMarkerBufLen % 2 == 1) {
+        result->SpO2On = 1u;
+      }
+    }
+
     return;
   } else {
     // 如果满足最小睡眠时长要求。

@@ -51,6 +51,9 @@
 #define SUCCESSIVE_MOTION (6.0)
 #define MEAN_DiffSUM_THRESHOLD (6.0)
 
+// 睡眠血氧打开最小时长.
+#define MIN_SPO2_DURATION (20)
+
 // Input struct. (暂定这个结构体，等测试功能稳定再修改)
 struct LSSleepData {
   uint8_t hr;            // 1秒钟1个，1hz
@@ -123,6 +126,8 @@ struct LSSleepResult {
   uint16_t wearBufLen;
   #endif
   Terminator_t completeCycleIndicator;
+
+  uint8_t SpO2On;
 };
 
 void LSSleepInitialize(void);
