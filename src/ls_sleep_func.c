@@ -185,7 +185,7 @@ float FindMedian(uint8_t *nums, uint16_t numsSize) {
         // If there is an even number of elements,
         // return mean of the two elements in the middle
         // printf("nums[numsSize/2]: %u, nums[numsSize/2-1]: %u\n", nums[numsSize/2], nums[numsSize/2-1]);
-        return (((float) (nums[numsSize/2] + nums[numsSize/2-1])) / 2.0);
+        return (((float) (nums[numsSize/2] + nums[numsSize/2-1])) / (double)2.0);
     } else {
         // Else return the element in the middle
         return (float) nums[numsSize/2];

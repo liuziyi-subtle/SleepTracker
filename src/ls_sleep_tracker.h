@@ -32,7 +32,7 @@
 // Limit of sleep segments recorded in a sleep cycle.
 #define MAX_SLEEP_SEGMENT_LEN (50)  //           (100)
 // Gap between sleep cycles.
-#define SLEEP_CYCLE_GAP (120)
+#define SLEEP_CYCLE_GAP (60)
 // 最短睡眠时长
 #define MIN_SLEEP_DURATION (60)
 // 睡眠深度 - 清醒
