@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
             // fprintf(fpOut, "sleepTimeUtc,getupTimeUtc,awakeDuration,awakeCount,lightDuration,deepDuration,remDuration,completeCycleIndicator,numSleepSegments,sleepSegments\n");
             // Timer to check result.
             int timer = 0;
-            uint32_t utcTime = 1565252014; // 0808: 1565166775 0809: 1565252014
+            uint32_t utcTime = 1606322309; // 0808: 1565166775 0809: 1565252014
             // char *sleepSegment2vec = data_malloc(sizeof(char) * 50000);
             // int sleepSegment2vecSize = 0;
             // Initialize algorithm
