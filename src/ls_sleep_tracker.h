@@ -136,6 +136,6 @@ void LSSleepAnalyzeData(struct LSSleepData *data, uint8_t dataSize,
 // void LSSleepPutData(struct LSSleepInput *info, uint32_t utcTime,
 //        bool wearDetection, bool init);
 void LSSleepPutData(struct LSSleepInput *info, bool wearIndicator, bool init);
-void LSSleepGetResult(struct LSSleepResult *result);
+void LSSleepGetResult(struct LSSleepResult *result, uint8_t force_complete);
 #endif
 

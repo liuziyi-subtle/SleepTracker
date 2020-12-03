@@ -482,7 +482,7 @@ void LSSleepPutData(struct LSSleepInput *info, bool wearIndicator, bool init) {
   result                   - 链接不同的整段睡眠(整段睡眠包含睡眠深度片段)
 
 */
-void LSSleepGetResult(struct LSSleepResult *result) {
+void LSSleepGetResult(struct LSSleepResult *result, uint8_t force_complete) {
   // Indicate whether the last marker of Global sleep marker buffer was
   // temporarily subtracted.
   bool addMarkerIndicator = false;
@@ -570,7 +570,7 @@ void LSSleepGetResult(struct LSSleepResult *result) {
     return;
   } else {
     // 如果满足最小睡眠时长要求。
-    if (gSleepCycleDetector > SLEEP_CYCLE_GAP) {
+    if ((gSleepCycleDetector > SLEEP_CYCLE_GAP) || force_complete) {
       // 与前面的睡眠间隔SLEEP_CYCLE_GAP以上。
       //            printf("gSleepCycleDetector: %u\n", gSleepCycleDetector);
       //            printf("result->awakeDuration: %u\n",
