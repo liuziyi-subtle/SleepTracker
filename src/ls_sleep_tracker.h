@@ -130,6 +130,11 @@ struct LSSleepResult {
   uint8_t SpO2On;
 };
 
+// 算法内部用到了内存空间申请和释放，
+// 相关的函数接口需要固件根据实际情况进行实现
+extern void *sleep_malloc(size_t size);
+extern void sleep_free(void *ptr);
+
 void LSSleepInitialize(void);
 void LSSleepAnalyzeData(struct LSSleepData *data, uint8_t dataSize,
                         uint32_t utcTime, bool init);
@@ -137,5 +142,6 @@ void LSSleepAnalyzeData(struct LSSleepData *data, uint8_t dataSize,
 //        bool wearDetection, bool init);
 void LSSleepPutData(struct LSSleepInput *info, bool wearIndicator, bool init);
 void LSSleepGetResult(struct LSSleepResult *result);
+float LSSleepGetProb(void);
 #endif
 

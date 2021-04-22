@@ -20,15 +20,18 @@
 #include <stdio.h>
 
 #include "ls_sleep_debug.h"
-#define data_malloc malloc
-#define data_free free
+#define sleep_malloc malloc
+#define sleep_free free
 #else  // 手表运行
-#include "FreeRTOS.h"
+//#include "FreeRTOS.h"
 //#include "ls_log.h"
-#include "rtos.h"
-#define data_malloc pvPortMalloc
-#define data_free vPortFree
+//#include "rtos.h"
+//#define sleep_malloc pvPortMalloc
+//#define sleep_free vPortFree
 #endif  // DEBUG_LOCAL
+
+//lib库版本信息
+const unsigned char ls_sleep_version[] = "v3.1.6_20210412";
 
 // TODO:
 //  1. 宏定义的名字精简，如SLEEP不需要
@@ -62,6 +65,10 @@ static uint16_t gSum2CountBufLen;
 static bool gWearIndicator;
 static float gMeanDiffSum;
 
+/* 存放所有的prob. */
+static float gProbBuf[MAX_SLEEP_RECORD_LEN];
+static uint16_t gProbBufLen;
+
 /**
  * @details
  * @brief  Initialization function for sleep detection.
@@ -83,6 +90,12 @@ void LSSleepInitialize(void) {
     gSleepDepthFeatBuf[i] = 0;
   }
   gSleepDepthFeatBufLen = 0;
+
+  for (i = 0; i < MAX_SLEEP_RECORD_LEN; ++i) {
+    gProbBuf[i] = .0f;
+  }
+  gProbBufLen = 0;
+
   #ifdef FUNC_SLEEP_CHECK_WEAR_TEST
   for (i = 0; i < MAX_SLEEP_RECORD_LEN; ++i) {
     kWearBuf[i] = 1;
@@ -205,7 +218,7 @@ void LSSleepAnalyzeData(struct LSSleepData *data, uint8_t dataSize,
 
   // 封装LSSleepPutData数据输入接口.
   struct LSSleepInput *info =
-      (struct LSSleepInput *)data_malloc(sizeof(struct LSSleepInput));
+      (struct LSSleepInput *)sleep_malloc(sizeof(struct LSSleepInput));
   info->hr = data[0].hr;
   info->accX = data[0].accX;
   info->accY = data[0].accY;
@@ -213,7 +226,7 @@ void LSSleepAnalyzeData(struct LSSleepData *data, uint8_t dataSize,
   info->utcTime = utcTime;
   LSSleepPutData(info, wearIndicator, false);
 
-  data_free(info);
+  sleep_free(info);
 
   return;
 }
@@ -247,6 +260,10 @@ void LSSleepPutData(struct LSSleepInput *info, bool wearIndicator, bool init) {
   // Window for post-processing on model result.
   static uint8_t averageWindow[SLEEP_STATUS_AVG_WINDOW_LEN];
   static uint8_t aPtr;
+
+  // Window for storing prob.
+  static float probWindow[SLEEP_STATUS_AVG_WINDOW_LEN];
+  static uint8_t pPtr;
 
   static bool wearIndicatorBuf[WEAR_INDICATOR_BUF_LEN];
   static uint8_t wPtr;
@@ -291,6 +308,11 @@ void LSSleepPutData(struct LSSleepInput *info, bool wearIndicator, bool init) {
       averageWindow[i] = 0;
     }
     aPtr = 0;
+
+    for (i = 0; i < SLEEP_STATUS_AVG_WINDOW_LEN; ++i) {
+      probWindow[i] = .0f;
+    }
+    pPtr = 0;
 
     // Initialize wear indicator buffer.
     for (i = 0; i < WEAR_INDICATOR_BUF_LEN; ++i) {
@@ -394,7 +416,7 @@ void LSSleepPutData(struct LSSleepInput *info, bool wearIndicator, bool init) {
       // float awake2sleep = stdPos / (float)mean_stdPos;
       // if (awake2sleep < 2) {
       // if (count_awake < 10) {
-        if (prob > 0.4) {
+        if (prob > 0.398) {
           // printf("prob: %f -- gTotalSleepDuration: %u -- count_awake: %u\n", prob, gTotalSleepDuration, count_awake);
           prob = 0.51;
         }
@@ -432,6 +454,16 @@ void LSSleepPutData(struct LSSleepInput *info, bool wearIndicator, bool init) {
 
   // Post-precess the result from model.
   bool sleepStatus = WindowAverage(averageWindow, SLEEP_STATUS_AVG_WINDOW_LEN);
+
+  probWindow[pPtr++] = prob;
+  if (pPtr == SLEEP_STATUS_AVG_WINDOW_LEN) {
+    pPtr = 0;
+  }
+  float avgProb = .0f;
+  for (i = 0; i < SLEEP_STATUS_AVG_WINDOW_LEN; ++i) {
+    avgProb = avgProb + probWindow[i];
+  }
+  gProbBuf[gProbBufLen++] = avgProb / SLEEP_STATUS_AVG_WINDOW_LEN;
 
 #ifdef DEBUG_LOCAL
   PLOT.xBuf[PLOT.xBufLen++] = feats[2];
@@ -631,7 +663,7 @@ void LSSleepGetResult(struct LSSleepResult *result) {
   uint16_t sleepCycleLen =
       (gSleepMarkerBuf[gSleepMarkerBufLen - 1] - gSleepMarkerBuf[0]);
   uint16_t *sleepMarkerBuf =
-      (uint16_t *)data_malloc(gSleepMarkerBufLen * sizeof(uint16_t));
+      (uint16_t *)sleep_malloc(gSleepMarkerBufLen * sizeof(uint16_t));
   for (i = 0; i < gSleepMarkerBufLen; ++i) {
     sleepMarkerBuf[i] = gSleepMarkerBuf[i] - sleepCycleOn;
   }
@@ -639,11 +671,11 @@ void LSSleepGetResult(struct LSSleepResult *result) {
   // Compute the depth of each sleep segment in the sleep cycle.
   uint16_t sleepCycleDepthSize = MAX_SLEEP_SEGMENT_LEN * 3;
   uint16_t *sleepCycleDepth =
-      (uint16_t *)data_malloc(sizeof(uint16_t) * sleepCycleDepthSize);
+      (uint16_t *)sleep_malloc(sizeof(uint16_t) * sleepCycleDepthSize);
   uint16_t validSleepCycleDepthSize = ComputeSleepDepth(
       &gSleepDepthFeatBuf[sleepCycleOn], sleepCycleLen, sleepMarkerBuf,
       gSleepMarkerBufLen, sleepCycleDepth, sleepCycleDepthSize);
-  data_free(sleepMarkerBuf);
+  sleep_free(sleepMarkerBuf);
 
   // 暂时还是对sleepCycleLen进行检查，如果越界且现在存在临时睡眠，则初始化并将临时睡眠改为完整睡眠
   if (validSleepCycleDepthSize == 0) {
@@ -652,7 +684,7 @@ void LSSleepGetResult(struct LSSleepResult *result) {
     }
 
     if (sleepCycleDepth != NULL) {
-      data_free(sleepCycleDepth);
+      sleep_free(sleepCycleDepth);
     }
 
     //        printf("888888888888888\n");
@@ -683,6 +715,21 @@ void LSSleepGetResult(struct LSSleepResult *result) {
         corrrctedUtcTime + 60 * (end + sleepCycleOn + 1);
     result->sleepSegments[i].depth = (uint8_t)depth;
     result->sleepSegments[i].duration = duration;
+
+    // modify depth.
+    if (depth == D_AWAKE) {
+      float mean_prob = .0f;
+      uint16_t j = 0u;
+      for (j = (start + sleepCycleOn); j < duration; ++j) {
+        mean_prob = mean_prob + gProbBuf[j];
+      }
+      mean_prob = mean_prob / (float)duration;
+
+      if (mean_prob > 0.35) {
+        result->sleepSegments[i].depth = D_LIGHT;
+      }
+    }
+
 
     switch (depth) {
       case D_AWAKE:
@@ -727,7 +774,7 @@ void LSSleepGetResult(struct LSSleepResult *result) {
   }
 
   if (sleepCycleDepth != NULL) {
-    data_free(sleepCycleDepth);
+    sleep_free(sleepCycleDepth);
   }
 
   // TODO(Ziyi Liu): gSleepMarkerBuf和gSleepDepthFeatBuf的越界检查需要位于result

@@ -18,14 +18,14 @@
 #ifdef DEBUG_LOCAL
 #include "ls_sleep_debug.h"
 #include <stdio.h>
-#define data_malloc malloc
-#define data_free   free
+#define sleep_malloc malloc
+#define sleep_free   free
 #else
-#include "rtos.h"
-#include "FreeRTOS.h"
+//#include "rtos.h"
+//#include "FreeRTOS.h"
 //#include "ls_log.h"
-#define data_malloc pvPortMalloc
-#define data_free   vPortFree
+//#define sleep_malloc pvPortMalloc
+//#define sleep_free   vPortFree
 #endif  // DEBUG_LOCAL
 
 
@@ -94,7 +94,7 @@ bool WindowAverage(uint8_t *window, uint32_t windowLen) {
 */
 float PredictSleepStatus(const float* features) {
     const size_t num_feature = get_num_feature();
-    union Entry* data = data_malloc(sizeof(union Entry) * num_feature);
+    union Entry* data = sleep_malloc(sizeof(union Entry) * num_feature);
     float outProbability;
 
     // Parse features
@@ -105,7 +105,7 @@ float PredictSleepStatus(const float* features) {
 
     outProbability = predict_sleep_status(data, 0);
 
-    data_free(data);
+    sleep_free(data);
 
     return outProbability;
 
@@ -273,7 +273,7 @@ void ComputeActivity(const float *sleepDepthFeatureBuf,
 */
 void ComputeCount(uint8_t *activityBlock, uint16_t blockLen,
     uint8_t windowSize, uint8_t *countBlock) {
-    uint8_t *window = (uint8_t*) data_malloc (sizeof(uint8_t) * windowSize);
+    uint8_t *window = (uint8_t*) sleep_malloc (sizeof(uint8_t) * windowSize);
     uint16_t i;
     uint8_t sum;
     uint8_t ptr;
@@ -298,7 +298,7 @@ void ComputeCount(uint8_t *activityBlock, uint16_t blockLen,
         countBlock[i] = sum;
     }
 
-    data_free(window);
+    sleep_free(window);
 }
 
 
@@ -343,7 +343,7 @@ int Compare_U16(void const* a, void const* b) {
  计算分位数
 */
 uint8_t GetPercentile(const uint8_t *block, uint16_t len, uint8_t percentile) {
-    uint8_t *block_copy = (uint8_t*) data_malloc (sizeof(uint8_t) * len);
+    uint8_t *block_copy = (uint8_t*) sleep_malloc (sizeof(uint8_t) * len);
     for (uint16_t i = 0; i < len; ++i) {
         block_copy[i] = block[i];
     }
@@ -355,7 +355,7 @@ uint8_t GetPercentile(const uint8_t *block, uint16_t len, uint8_t percentile) {
 
     uint8_t p = block_copy[index];
 
-    data_free(block_copy);
+    sleep_free(block_copy);
 
     return p;
 }
@@ -403,7 +403,7 @@ void Compute3StageDepth(const uint8_t *countBlock, const uint16_t blockLen,
 * 寻找数组中出现次数最多的元素，用于寻找窗口内出现次数最多的睡眠深度
 */
 uint8_t MostFrequent(const uint8_t *srcArr, uint8_t arrLen) {
-    uint8_t *arr = (uint8_t*) data_malloc (sizeof(uint8_t) * arrLen);
+    uint8_t *arr = (uint8_t*) sleep_malloc (sizeof(uint8_t) * arrLen);
     memcpy(arr, srcArr, sizeof(uint8_t) * arrLen);
     qsort(arr, arrLen, sizeof(uint8_t), Compare_U8);
 
@@ -426,7 +426,7 @@ uint8_t MostFrequent(const uint8_t *srcArr, uint8_t arrLen) {
         // max_count = curr_count;
         res = arr[arrLen - 1];
     }
-    data_free(arr);
+    sleep_free(arr);
 
     return res;
 }
@@ -582,7 +582,7 @@ bool CheckWear(float *sum2CountBuf, uint16_t sum2CountBufSize, uint16_t *sleepMa
 */
 void ComputePostDepth(uint8_t *depthBlock, uint16_t blockLen,
     uint8_t windowSize, uint8_t *postDepthBlock) {
-    uint8_t *window = (uint8_t*) data_malloc (sizeof(uint8_t) * windowSize);
+    uint8_t *window = (uint8_t*) sleep_malloc (sizeof(uint8_t) * windowSize);
     uint8_t ptr = 0;
     uint8_t depth;
 
@@ -603,7 +603,7 @@ void ComputePostDepth(uint8_t *depthBlock, uint16_t blockLen,
         postDepthBlock[i] = depth;
     }
 
-    data_free(window);
+    sleep_free(window);
 }
 
 
