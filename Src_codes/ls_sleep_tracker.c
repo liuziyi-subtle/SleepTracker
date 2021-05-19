@@ -58,10 +58,10 @@ static uint16_t gCounter = 0;
 static uint16_t gTotalSleepDuration = 0;
 
 //  新
-static float gSum2CountBuf[MAX_SLEEP_RECORD_LEN];
-static uint16_t gSum2CountBufLen;
-static bool gWearIndicator;
-static float gMeanDiffSum;
+// static float gSum2CountBuf[MAX_SLEEP_RECORD_LEN];
+// static uint16_t gSum2CountBufLen;
+// static bool gWearIndicator;
+// static float gMeanDiffSum;
 
 
 //By James
@@ -112,13 +112,13 @@ void LSSleepInitialize(void) {
 
   // 新
   for (i = 0; i < MAX_SLEEP_RECORD_LEN; ++i) {
-    gSum2CountBuf[i] = .0f;
+    // gSum2CountBuf[i] = .0f;
   }
-  gSum2CountBufLen = 0;
+  // gSum2CountBufLen = 0;
 
-  gWearIndicator = false;  // 初始化为false比较安全
+  // gWearIndicator = false;  // 初始化为false比较安全
 
-  gMeanDiffSum = .0f;
+  // gMeanDiffSum = .0f;
 
   LSSleepAnalyzeData(NULL, 0, 0, true);
 
@@ -190,9 +190,9 @@ void LSSleepAnalyzeData(struct LSSleepData *data, uint8_t dataSize,
   }
 
   // 更新两个可用于作佩戴检测的标志。
-  gSum2CountBuf[gSum2CountBufLen++] =
-      ((float)diffSum) / (((float)diffCount) + 0.000001f);
-  gMeanDiffSum = (gMeanDiffSum + diffSum) / (float)gTime;
+  // gSum2CountBuf[gSum2CountBufLen++] =
+  //     ((float)diffSum) / (((float)diffCount) + 0.000001f);
+  // gMeanDiffSum = (gMeanDiffSum + diffSum) / (float)gTime;
 
   // 基于3种情况进行佩戴检测:
   // 1. 全局心率打开，且心率检测未佩戴(完全可信).
@@ -216,7 +216,7 @@ void LSSleepAnalyzeData(struct LSSleepData *data, uint8_t dataSize,
   // TODO(Ziyi Liu): 如果gWearIndicator为true，需要在LSSleepGetResult中作第二轮
   //  佩戴检测。
   // gWearIndicator = wearIndicator;
-  gWearIndicator = false;
+  // gWearIndicator = false;
 
   // 封装LSSleepPutData数据输入接口.
   struct LSSleepInput *info =

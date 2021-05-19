@@ -21,10 +21,13 @@
 #define data_free   m_sleep_free_cb_fun
 
 
-static uint8_t gActivityBlock[BLOCK_LIMIT];
-static uint8_t gCountBlock[BLOCK_LIMIT];
-static uint8_t gDepthBlock[BLOCK_LIMIT];
-static uint8_t gPostDepthBlock[BLOCK_LIMIT];
+// static uint8_t gActivityBlock[BLOCK_LIMIT];
+// static uint8_t gCountBlock[BLOCK_LIMIT];
+// static uint8_t gDepthBlock[BLOCK_LIMIT];
+// static uint8_t gPostDepthBlock[BLOCK_LIMIT];
+
+static uint8_t _mem_pool_1[BLOCK_LIMIT];
+static uint8_t _mem_pool_2[BLOCK_LIMIT];
 
 
 // 睡眠算法内存管理
@@ -666,13 +669,17 @@ uint16_t ComputeSleepDepth(const float *sleepDepthFeatBuf,
     }
 
     // 计算activity
+    uint8_t *gActivityBlock = _mem_pool_1;
     ComputeActivity(sleepDepthFeatBuf, sleepDepthFeatBufLen, gActivityBlock);
     // 计算count
+    uint8_t *gCountBlock = _mem_pool_2;
     ComputeCount(gActivityBlock, sleepDepthFeatBufLen, 13, gCountBlock);
     // 计算depth
+    uint8_t *gDepthBlock = _mem_pool_1;
     Compute3StageDepth(gCountBlock, sleepDepthFeatBufLen, sleepMarkerBuf,
         sleepMarkerBufLen, gDepthBlock);
     // 平滑结果
+    uint8_t *gPostDepthBlock = _mem_pool_2;
     ComputePostDepth(gDepthBlock, sleepDepthFeatBufLen, 13, gPostDepthBlock);
 
     uint16_t sleepCycleDepthLen = 0;
@@ -714,10 +721,12 @@ uint16_t ComputeSleepDepth(const float *sleepDepthFeatBuf,
 void LSSleepFuncInitialize(void) {
     uint16_t i;
     for (i = 0; i < BLOCK_LIMIT; ++i) {
-        gActivityBlock[i] = 0;
-        gCountBlock[i] = 0;
-        gDepthBlock[i] = 0;
-        gPostDepthBlock[i] = 0;
+        // gActivityBlock[i] = 0;
+        // gCountBlock[i] = 0;
+        // gDepthBlock[i] = 0;
+        // gPostDepthBlock[i] = 0;
+        _mem_pool_1[i] = 0;
+        _mem_pool_2[i] = 0;
     }
     OnePassStd(0, true);
     // CheckWearingStepOne(0, 0, 0, true);
